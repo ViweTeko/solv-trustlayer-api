@@ -13,7 +13,19 @@ class OrganizationSerializer(serializers.ModelSerializer):
 class UnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Unit
-        fields = ['id', 'name', 'weight', 'unit_type', 'current_owner', 'parent_unit', 'created_at']
+        fields = [
+            'id',
+            'name',
+            'weight',
+            'unit_type',
+            'current_owner',
+            'parent_unit',
+            'created_at',
+            'status',
+            'lab_test_status',
+            'storage_location',
+            'description',
+            ]
         read_only_fields = ['id', 'created_at']
 
         def validate_weight(self, value: float) -> float:

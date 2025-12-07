@@ -10,6 +10,7 @@
     # pkgs.python311Packages.pip
     # pkgs.nodejs_20
     # pkgs.nodePackages.nodemon
+    pkgs.ruff
   ];
   # Sets environment variables in the workspace
   env = {};
@@ -18,6 +19,7 @@
     extensions = [
       # "vscodevim.vim"
       "google.gemini-cli-vscode-ide-companion"
+      "charliermarsh.ruff"
     ];
     # Enable previews
     previews = {
