@@ -1,0 +1,76 @@
+{
+    // A brief comment explaining the purpose of the file.
+    "compilerOptions": {
+      // --- Project Setup ---
+      
+      // Target JavaScript version for compilation. ES2020 is standard and modern.
+      "target": "ES2020",
+      
+      // Which module system to use (CommonJS, ESM, etc.). 'ES2020' or 'ESNext' is best for modern bundlers.
+      "module": "ES2020", 
+      
+      // Set the base directory for module resolution.
+      "baseUrl": "./src", 
+      
+      // --- Module Resolution and Imports ---
+      
+      // Defines how TypeScript resolves modules, critical for 'import ... from "react"'.
+      // 'node' is traditional, but 'nodeNext' or 'nodenext' is recommended for modern Node/ESM compatibility.
+      "moduleResolution": "node", 
+  
+      // Allows default imports for modules that only export named members (e.g., 'import React from "react"').
+      "allowSyntheticDefaultImports": true, 
+      
+      // Ensures that an import's casing matches the file system's casing.
+      "forceConsistentCasingInFileNames": true, 
+  
+      // --- React & JSX Configuration ---
+      
+      // Specifies how JSX is emitted. 'react-jsx' (the modern runtime) is standard.
+      // This removes the need for 'import React from "react"' in every JSX file.
+      "jsx": "react-jsx", 
+      
+      // --- Type Checking & Strictness (Recommended for safety) ---
+      
+      // Enable all strict type-checking options. Highly recommended for production quality.
+      "strict": true,
+      
+      // Ensure all variables are checked against 'null' or 'undefined'.
+      "strictNullChecks": true,
+      
+      // Enforce that 'this' is explicitly typed.
+      "noImplicitThis": true, 
+      
+      // Check functions for unused parameters.
+      "noUnusedParameters": true,
+      
+      // Check functions for unused local variables.
+      "noUnusedLocals": true,
+      
+      // --- Output & Environment ---
+      
+      // Where compiled JavaScript files should be emitted (if you were running tsc directly).
+      "outDir": "./dist", 
+      
+      // Generate declaration files (.d.ts) for libraries.
+      "declaration": false,
+      
+      // Add source maps for easier debugging in the browser.
+      "sourceMap": true, 
+      
+      // Prevent files not explicitly listed from being included.
+      "skipLibCheck": true 
+    },
+    
+    // Specifies which files TypeScript should compile.
+    "include": [
+      "src/**/*.ts", 
+      "src/**/*.tsx"
+    ],
+    
+    // Specifies files to exclude from compilation.
+    "exclude": [
+      "node_modules", 
+      "dist"
+    ]
+  }
