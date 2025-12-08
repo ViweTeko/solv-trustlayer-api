@@ -1,8 +1,9 @@
 """
 This script is the model that communicates with the database
 """
-from django.db import models
 import uuid
+
+from django.db import models
 
 UNIT_TYPES = (
     ('HARVEST', 'Harvested Raw Material'),

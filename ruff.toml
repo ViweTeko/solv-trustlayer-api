@@ -1,8 +1,7 @@
-[tool.ruff]
 extend-select = ["B","I","N","UP","RUF","C4"]
 
-[tool.ruff.pydocstyle]
+[pydocstyle]
 convention = "google"
 
-[tool.ruff.isort]
+[isort]
 known-first-party = ["inventory", "solv_project"]

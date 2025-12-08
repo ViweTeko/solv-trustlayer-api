@@ -1,9 +1,10 @@
 """ 
 URL configuration for Inventory app
 """
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from django.urls import path, include
-from .views import UnitViewSet, OrganizationViewSet
+
+from .views import OrganizationViewSet, UnitViewSet
 
 router = DefaultRouter()
 router.register(r'units', UnitViewSet)

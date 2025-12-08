@@ -1,19 +1,22 @@
 """
 This script converts the models into JSON for the API
 """
+from typing import Any  # noqa: F401
+
 from rest_framework import serializers
-from .models import Unit, Organization
-from typing import Any
+
+from .models import Organization, Unit
+
 
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
-        fields = ['id', 'name', 'type']
+        fields = ['id', 'name', 'type']  # noqa: RUF012
 
 class UnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Unit
-        fields = [
+        fields = [  # noqa: RUF012
             'id',
             'name',
             'weight',
@@ -26,7 +29,7 @@ class UnitSerializer(serializers.ModelSerializer):
             'storage_location',
             'description',
             ]
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at']  # noqa: RUF012
 
         def validate_weight(self, value: float) -> float:
             """ This validates the weight"""
