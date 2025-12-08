@@ -15,7 +15,7 @@ UNIT_STATUSES = (
     ('ACTIVE', 'Active in Inventory'),
     ('TRANSIT', 'In Transit'),
     ('ARCHIVED', 'Archived/Sold'),
-    ('Disposed', 'Disposed/Destroyed'),
+    ('DISPOSED', 'Disposed/Destroyed'),
 )
 
 LAB_TEST_STATUSES = (
@@ -28,7 +28,12 @@ class Organization(models.Model):
     """ This class defines the Organization table"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, unique=True)
-    type = models.CharField(max_length=50)
+    licence_number = models.CharField(max_length=50, unique=True, default='N/A')
+    address = models.CharField(max_length=255, default='N/A')
+    contact_email = models.EmailField(max_length=255, default='No Email Address')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
 
     def __str__(self) -> str:
         return self.name
