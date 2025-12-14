@@ -1,16 +1,27 @@
 
+export type UnitType = 'HARVEST' | 'PROCESSED' | 'FINAL';
+export type UnitStatus = 'ACTIVE' | 'TRANSIT' | 'ARCHIVED' | 'DISPOSED';
+export type LabTestStatus = 'PENDING' | 'PASS' | 'FAIL';
+export type QualityGrade = 'A' | 'B' | 'C' | 'Pending';
 /**
- * Defines the structure of a Unit object as received from the Django API (Read Contract).
+ * Defines the structure of a Unit object as received
+ * from the Django API (Read Contract).
+ * NOTE: The backend (units/models.py) must implement these fields.
+ * 
  */
 export interface Unit {
     id: string;
-    name: string;
+    cultivar_name: string;
     weight: number;
-    unit_type: 'HARVEST' | 'PROCESSED' | 'FINAL';
-    status: 'ACTIVE' | 'TRANSIT' | 'ARCHIVED' | 'DISPOSED';
-    lab_test_status: 'PENDING' | 'PASS' | 'FAIL';
+    unit_type: UnitType;
+    status: UnitStatus;
+    lab_test_status: LabTestStatus;
+    date_harvested: string;
+    gps_coordinates: string;
+    quality_grade: QualityGrade;
     storage_location: string;
     description: string;
+    
     current_owner: string;
     parent_unit: string | null;
     created_at: string;
@@ -32,16 +43,7 @@ export interface Organization {
 
 /**
  * Defines the structure of data sent to the Django API (Write Contract).
- * All fields required for creation, except for server-generated ones (id, created_at).
+ * The input data for creating a new unit.
+ * @interface UnitInput
  */
-export interface UnitInput {
-    name: string;
-    weight: number;
-    unit_type: 'HARVEST' | 'PROCESSED' | 'FINAL';
-    status: 'ACTIVE' | 'IN_TRANSIT' | 'ARCHIVED' | 'DISPOSED';
-    lab_test_status: 'PENDING' | 'PASS' | 'FAIL';
-    storage_location: string;
-    description: string;
-    current_owner: string; 
-    parent_unit: string | null;
-}
+export interface UnitInput extends Omit<Unit, 'id' | 'created_at'> {}

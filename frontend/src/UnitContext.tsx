@@ -1,86 +1,120 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { 
+    createContext, useContext, useState, useEffect, useCallback, ReactNode 
+} from 'react';
+import { 
+    createUnit, getAuthToken
+} from './client_service';
 import { Unit, UnitInput } from './api_contract';
-import { fetchUnits, createUnit, updateUnit } from './client_service';
 
+
+/**
+ * The context for managing units.
+ * @interface UnitContextType
+ * @property {Unit[]} units - The list of units.
+ * @property {boolean} isLoading - Indicates if units are being loaded.
+ * @property {string | null} error - The error message, if any.
+ * @property {(unitData: UnitInput) => Promise<Unit | null>} addUnit 
+ *          - Function to add a new unit.
+ * @property {(updatedUnit: Unit) => Promise<Unit | null>} editUnit 
+ *          - Function to update an existing unit
+ * @property {() => void} refreshUnits 
+ *          - Function to refresh the list of units.
+ */
 interface UnitContextType {
     units: Unit[];
     isLoading: boolean;
     error: string | null;
-    addUnit: (data: UnitInput) => Promise<Unit | undefined>;
-    updateExistingUnit: (id: string, data: Partial<UnitInput>) => Promise<Unit | undefined>;
+    addUnit: (unitData: UnitInput) => Promise<Unit | null>;
+    editUnit: (updatedUnit: Unit) => Promise<Unit | null>;
     refreshUnits: () => void;
+    //removeUnits: (unitId: number) => void;
 }
 
 const UnitContext = createContext<UnitContextType | undefined>(undefined);
 
-export const UnitProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const UnitProvider
+        : React.FC<{ children: ReactNode }> = ({ children }) => {
+    const isAuthenticated = !!getAuthToken();
+
     const [units, setUnits] = useState<Unit[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    // const { isAuthenticated } = useAuth();
-
-    const loadUnits = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const data = await fetchUnits();
-            setUnits(data);
-        } catch (e: any) {
-            console.error("Failed to load units:", e);
-            let errorMessage = "Failed to load inventory data. Check API connection and ensure backend is running.";
-            try {
-                const errorObj = JSON.parse(e.message);
-                if (errorObj.detail) {
-                     errorMessage = `API Error: ${errorObj.detail}`;
-                }
-            } catch {}
-            setError(errorMessage);
-        } finally {
-            setIsLoading(false);
-        }
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
     
-    };
+
+    const refreshUnits = useCallback(() => {
+            setRefreshTrigger(prev => prev + 1);
+        }, []);
 
     useEffect(() => {
-        // if (isAuthenticated) { loadUnits(); }
-        loadUnits();
-    }, []);
+        if (!isAuthenticated) { 
+            setIsLoading(false);
+            return; 
+        }
 
-    const addUnit = async (data: UnitInput): Promise<Unit | undefined> => {
+        const fetchUnits = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const data: Unit[] = await getUnits();
+                setUnits(data);
+            } catch (e: any) {
+                console.error("Failed to fetch units:", e);
+                setError(
+                    e.message ||
+                    "Failed to fetch inventory data."
+                );
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchUnits();
+    }, [isAuthenticated, refreshTrigger]);
+
+    const addUnit = async (unitData: UnitInput): Promise<Unit | null> => {
         try {
-            const newUnit = await createUnit(data);
-            setUnits(prevUnits => [...prevUnits, newUnit]);
+            const newUnit: Unit = await createUnit(unitData);
+            setUnits(prevUnits => [newUnit, ...prevUnits]);
             return newUnit;
         } catch (e: any) {
-            const errorObj = JSON.parse(e.message);
-            const validationErrors = Object.entries(errorObj).map(([key, value]) =>
-                `${key}: ${Array.isArray(value) ? value.join(', '): value}`
-            ).join(', ');
-            setError(`Creation failed: ${validationErrors}`);
-            return undefined;
+            setError(e.message || 'Failed to add unit.');
+            throw e;
         }
     };
 
-    const updateExistingUnit = async (id: string, data: Partial<UnitInput>): Promise<Unit | undefined> => {
+    const editUnit = async (updatedUnit: Unit): Promise<Unit | null> => {
         try {
-            const updatedUnit = await updateUnit(id, data);
-            setUnits(prevUnits => prevUnits.map(unit =>
-                unit.id === id ? updatedUnit : unit
+            //const updateUnit = await refreshUnits(updatedUnit);
+            setUnits(prevUnits => prevUnits.map(u =>
+                u.id === updatedUnit.id ? updatedUnit : u
             ));
             return updatedUnit;
         } catch (e: any) {
             setError(e.message || "Failed to update unit.");
-            return undefined;
+            throw e;
         }
     };
+
+    /*const removeUnit = async (unitId: number) => {
+        try {
+            const deletedUnit = await deleteUnit(unitId);
+            setUnits(prevUnits => prevUnits.filter(
+                u => u.id !== unitId ? deletedUnit: u
+            ));
+        } catch (e: any) {
+            setError(e.message || 'Failed to delete unit.');
+            throw e;
+        }
+    }; */
 
     const contextValue: UnitContextType = {
         units,
         isLoading,
         error,
         addUnit,
-        updateExistingUnit,
-        refreshUnits: loadUnits,
+        editUnit,
+        refreshUnits,
     };
 
     return (
@@ -92,7 +126,7 @@ export const UnitProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 export const useUnits = () => {
     const context = useContext(UnitContext);
-    if (!context) {
+    if (context === undefined) {
         throw new Error('useUnits must be used within a UnitProvider');
     }
     return context;
