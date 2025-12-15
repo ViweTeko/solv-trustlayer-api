@@ -2,7 +2,7 @@ import React, {
     createContext, useContext, useState, useEffect, useCallback, ReactNode 
 } from 'react';
 import { 
-    createUnit, getAuthToken
+    createUnit, getAuthToken, getUnits
 } from './client_service';
 import { Unit, UnitInput } from './api_contract';
 

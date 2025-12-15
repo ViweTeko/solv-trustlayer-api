@@ -4,21 +4,13 @@
  */
 import { Unit, UnitInput } from './api_contract';
 
-/**
- * Determines the API base URL based on the current hostname.
- * @returns {string} The API base URL.
- */
-const getApiBaseUrl = () => {
-    if (import.meta.env.DEV) {
-        return 'http:localhost:8000/api';
-    }
-    return 'api';
-};
+export const TEMP_OWNER_ID = '123-456-789';
 
 /**
  * The base URL for the API.
  */
-export const API_BASE_URL = getApiBaseUrl();
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
+    'http://localhost:8000/api';
 
 /**
  * Logs in the user and sets the access token in local storage.
@@ -130,14 +122,15 @@ export const fetchUnits = async (): Promise<Unit[]> => {
  * @param unitData The data for the new Unit.
  * @returns A Promise that resolves to the created Unit.
  */
-export const createUnit = async (unitData: Unit): Promise<Unit> => {
-    const dataToSend = {
+export const createUnit = async (unitData: UnitInput): Promise<Unit> => {
+    const payload = {
         ...unitData,
-        date_harvested: unitData.date_harvested // date format: YYY-MM-DD
+        date_harvested: unitData.date_harvested, // date format: YYY-MM-DD
+        current_owner: TEMP_OWNER_ID,
     };
     return apiFetch('units/', {
         method: 'POST',
-        body: JSON.stringify(dataToSend),
+        body: JSON.stringify(payload),
     });
 };
 
@@ -158,6 +151,35 @@ export const refreshUnits = async (unit: Unit): Promise<Unit> => {
     });
 };
 
+const fetchApi = async <T>(
+    endpoint: string, options: RequestInit = {}
+): Promise<T> => {
+    const token = getAuthToken();
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...options.headers,
+    };
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers,
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail ||
+            `API error: ${response.statusText}`
+        );
+    }
+
+    if (response.status === 204) {
+        return {} as T;
+    }
+
+    return response.json() as Promise<T>;
+}
+
 /**
  * Deletes an existing Unit. (DELETE /api/units/{id}/)
  * @param unitId The ID of the Unit to delete.
@@ -167,6 +189,14 @@ export const deleteUnit = async (unitId: number): Promise<void> => {
     await apiFetch(`units/${unitId}/`, {
         method: 'DELETE'
     });
+};
+
+/**
+ * Retrieves all Units from the API. (GET /api/units/)
+ * @returns A Promise that resolves to an array of Units.
+ */
+export const getUnits = async (): Promise<Unit[]> => {
+    return fetchApi<Unit[]>('/units');
 };
 
 // --- Authentication Service ---

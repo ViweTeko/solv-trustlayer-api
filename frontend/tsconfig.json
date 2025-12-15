@@ -65,7 +65,8 @@
     // Specifies which files TypeScript should compile.
     "include": [
       "src/**/*.ts", 
-      "src/**/*.tsx"
+      "src/**/*.tsx",
+      "src/env.d.ts"
     ],
     
     // Specifies files to exclude from compilation.
