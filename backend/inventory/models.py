@@ -10,24 +10,30 @@ from django.utils import timezone
 
 from inventory.models import Organization
 
-UNIT_TYPES = (
-    ('HARVEST', 'Harvested Raw Material'),
-    ('PROCESSED', 'Processed Product'),
-    ('FINAL', 'Final Consumer Product'),
-)
+class UnitType(TextChoices):
+    HARVEST = 'HARVEST','Harvested Raw Material'
+    PROCESSED = 'PROCESSED', 'Processed Product'
+    FINAL = 'FINAL', 'Final Product'
 
-UNIT_STATUSES = (
-    ('ACTIVE', 'Active in Inventory'),
-    ('TRANSIT', 'In Transit'),
-    ('ARCHIVED', 'Archived/Sold'),
-    ('DISPOSED', 'Disposed/Destroyed'),
-)
 
-LAB_TEST_STATUSES = (
-    ('PENDING', 'Lab Test Pending'),
-    ('PASS', 'Test Passed'),
-    ('FAIL', 'Test Failed'),
-)
+class UnitStatus(TextChoices):
+    ACTIVE = 'ACTIVE', 'Active in Inventory'
+    TRANSIT = 'TRANSIT', 'In Transit'
+    ARCHIVED = 'ARCHIVED', 'Archived/Sold'
+    DISPOSED = 'DISPOSED', 'Disposed/Destroyed'
+
+
+class LabTestStatus(TextChoices):
+    PENDING = 'PENDING', 'Lab Test Pending'
+    PASS = 'PASS', 'Passed'
+    FAIL = 'FAIL', 'Failed'
+
+class QualityGrade(TextChoices):
+        GRADE_A = 'A', 'Grade A (Premium)'
+        GRADE_B = 'B', 'Grade B (Standard)'
+        GRADE_C = 'C', 'Grade C (Low)'
+        PENDING = 'PENDING', 'Pending'
+
 
 class Organization(models.Model):
     """ This class defines the Organization table"""
@@ -48,13 +54,29 @@ class Unit(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     cultivar_name = models.CharField(max_length=100)
     weight = models.FloatField()
-    unit_type = models.CharField(max_length=20, choices=UNIT_TYPES, default='HARVEST')
+    unit_type = models.CharField(
+        max_length=20,
+        choices=UnitType.choices,
+        default=UnitType.HARVEST
+    )
     date_harvested = models.DateField(default=timezone.now)
-    status = models.CharField(max_length=20, choices=UNIT_STATUSES, default='ACTIVE')
-    lab_test_status = models.CharField(max_length=10, choices=LAB_TEST_STATUSES, default='PENDING')
+    status = models.CharField(
+        max_length=20,
+        choices=UnitStatus.choices,
+        default=UnitStatus.ACTIVE
+    )
+    lab_test_status = models.CharField(
+        max_length=10,
+        choices=LabTestStatus.choices,
+        default=LabTestStatus.PENDING
+    )
     storage_location = models.CharField(max_length=255, default='Unknown', help_text="e.g., 34.0552, -110.5523")
     gps_coordinates = models.CharField(max_length=50, default='Unknown')
-    quality_grade = models.CharField(max_length=50, default='PENDING')
+    quality_grade = models.CharField(
+        max_length=50,
+        choices=QualityGrade.choices,
+        default=QualityGrade.PENDING
+    )
 
     description = models.TextField(blank=True, null=True)
 
@@ -68,9 +90,13 @@ class Unit(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='child_units'
+        related_name='processed_units'
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self) -> str:
         return f"{self.cultivar_name} ({self.id})"
