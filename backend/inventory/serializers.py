@@ -29,7 +29,7 @@ class UnitSerializer(serializers.ModelSerializer):
             'storage_location',
             'description',
             ]
-        read_only_fields = ['id', 'created_at']  # noqa: RUF012
+        read_only_fields = ['id', 'created_at','current_owner']  # noqa: RUF012
 
         def validate_weight(self, value: float) -> float:
             """ This validates the weight"""

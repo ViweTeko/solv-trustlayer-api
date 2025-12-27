@@ -3,7 +3,12 @@ This script is the model that communicates with the database
 """
 import uuid
 
+from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import TextChoices
+from django.utils import timezone
+
+from inventory.models import Organization
 
 UNIT_TYPES = (
     ('HARVEST', 'Harvested Raw Material'),
@@ -41,13 +46,16 @@ class Organization(models.Model):
 class Unit(models.Model):
     """ This class defines the Unit table"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
+    cultivar_name = models.CharField(max_length=100)
     weight = models.FloatField()
     unit_type = models.CharField(max_length=20, choices=UNIT_TYPES, default='HARVEST')
-
+    date_harvested = models.DateField(default=timezone.now)
     status = models.CharField(max_length=20, choices=UNIT_STATUSES, default='ACTIVE')
     lab_test_status = models.CharField(max_length=10, choices=LAB_TEST_STATUSES, default='PENDING')
-    storage_location = models.CharField(max_length=255, default='Unknown')
+    storage_location = models.CharField(max_length=255, default='Unknown', help_text="e.g., 34.0552, -110.5523")
+    gps_coordinates = models.CharField(max_length=50, default='Unknown')
+    quality_grade = models.CharField(max_length=50, default='PENDING')
+
     description = models.TextField(blank=True, null=True)
 
     current_owner = models.ForeignKey(
@@ -65,4 +73,29 @@ class Unit(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return f"{self.name} ({self.weight}kg)"
+        return f"{self.cultivar_name} ({self.id})"
+
+class User(AbstractUser):
+    """ Links every user to an Organization """
+    organization = models.ForeignKey(
+        'inventory.Organization',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='users'
+    )
+
+    ROLE_CHOICE = (
+        ('ADMIN', 'Admin'),
+        ('WORKER', 'Worker'),
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICE,
+        default='WORKER'
+    )
+
+    def __str__(self):
+        if self.organization:
+            return f"{self.username} ({self.organization.name})"
+        return f"{self.username} (No Org)"
